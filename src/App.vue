@@ -1,22 +1,69 @@
 <template>
   <div id="app">
     <div class="inputFormWrapper">
-      <input-form @new-block="updateflowChartBlocks" />
+      <input-form @new-block="addAtEnd" />
       <button class="btn btnPrimary" @click="createJson">Create Json</button>
       <a href="/getJson">
         <button class="btn btnSecondary" @click="downloadJson">
           Download Json
         </button>
       </a>
+      <div class="blocksWrapper">
+        <flow-chart-block
+          v-model="userMessage"
+          :blockInputType="true"
+          :placeholderText="`Enter text for usermessage block.`"
+          draggable="true"
+          @dragstart.native="
+            draggingStarted($event, {
+              type: 'usermessage',
+              value: userMessage,
+            })
+          "
+          :block-data="{ type: 'usermessage', id: 999, value: 'Dummy Text' }"
+        />
+        <flow-chart-block
+          v-model="utterance"
+          :blockInputType="true"
+          :placeholderText="`Enter text for utterance block.`"
+          draggable="true"
+          @dragstart.native="
+            draggingStarted($event, {
+              type: 'utterance',
+              value: utterance,
+            })
+          "
+          :block-data="{ type: 'utterance', id: 998, value: 'Hello' }"
+        />
+        <flow-chart-block
+          v-model="action"
+          :blockInputType="true"
+          :placeholderText="`Enter text for action block.`"
+          draggable="true"
+          @dragstart.native="
+            draggingStarted($event, { type: 'action', value: action })
+          "
+          :block-data="{ type: 'action', id: 997, value: 'Hello' }"
+        />
+      </div>
       <span class="info">*{{ dataOutputted }}</span>
     </div>
     <div class="flowChartOutputWrapper">
-      <div class="flowChartOutput">
+      <div
+        class="flowChartOutput"
+        ref="flowChartContainer"
+        @drop="onDrop"
+        @dragenter.prevent
+        @dragover.prevent
+      >
         <flow-chart-block
           v-for="blockItem in flowChartBlocks"
           :key="`blockItem${blockItem.type}${blockItem.id}`"
           :block-data="blockItem"
+          class="draggable"
           @delete-block="deleteBlock"
+          draggable="true"
+          @dragstart.native="draggingStarted($event, blockItem.id)"
         />
       </div>
       <span class="info">*Click on the block to delete it</span>
@@ -46,19 +93,87 @@ export default {
         { type: 'action', id: 2, value: 'dummy text - action block' },
         { type: 'utterance', id: 3, value: 'dummy text - utterance block' },
       ],
-      newId: 4,
+      newId: 3,
       dataOutputted: "Data's been updated, create Json again.",
+      userMessage: '',
+      utterance: '',
+      action: '',
     };
   },
   methods: {
-    updateflowChartBlocks(blockData) {
+    draggingStarted(event, blockId) {
+      if (blockId instanceof Object) {
+        blockId = JSON.stringify(blockId);
+        event.dataTransfer.setData('blockData', blockId);
+        return;
+      }
+      event.dataTransfer.setData('blockId', blockId);
+      // console.log(blockId);
+    },
+    onDrop(event) {
+      const blockId = event.dataTransfer.getData('blockId');
+      const afterElement = this.getDragAfterElement(event.clientY);
+      let blockIndex = 0,
+        blockData;
+
+      if (!blockId) {
+        blockData = JSON.parse(event.dataTransfer.getData('blockData'));
+        blockData = this.createflowChartBlocks(blockData);
+      } else {
+        blockData = this.flowChartBlocks.find(
+          (el) => el.id === parseInt(blockId)
+        );
+        blockIndex = this.flowChartBlocks.findIndex(
+          (el) => el.id === parseInt(blockId)
+        );
+      }
+
+      if (afterElement === undefined) {
+        if (blockIndex) {
+          this.flowChartBlocks.splice(blockIndex, 1);
+        }
+        this.flowChartBlocks.push(blockData);
+      } else {
+        const afterElementId = this.flowChartBlocks.findIndex(
+          (el) => el.id === afterElement.id
+        );
+        if (blockIndex) {
+          this.flowChartBlocks.splice(blockIndex, 1);
+        }
+        this.flowChartBlocks.splice(afterElementId, 0, blockData);
+      }
+    },
+    getDragAfterElement(y) {
+      const allDraggableNodes = Array.from(
+        this.$refs.flowChartContainer.querySelectorAll('.draggable')
+      );
+      return allDraggableNodes.reduce(
+        (nearest, curr) => {
+          const box = curr.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+
+          if (offset < 0 && offset > nearest.offset) {
+            return { offset, element: curr };
+          } else {
+            return nearest;
+          }
+        },
+        {
+          offset: Number.NEGATIVE_INFINITY,
+        }
+      ).element;
+    },
+    createflowChartBlocks(blockDataObject) {
+      this.newId++;
+      return Object.assign(blockDataObject, { id: this.newId });
+    },
+    addAtEnd(blockData) {
       const [type, value] = blockData;
-      this.flowChartBlocks.push({
+      const blockDataObject = this.createflowChartBlocks({
         type: type.toLowerCase(),
-        id: this.newId,
         value,
       });
-      this.newId++;
+      this.flowChartBlocks.push(blockDataObject);
       this.dataOutputted = "Data's been updated, create Json again.";
     },
     deleteBlock(id) {
@@ -154,6 +269,16 @@ a:active {
   background: #34495e;
   flex: 0 0 40%;
   position: relative;
+
+  .blocksWrapper {
+    margin: 3rem 6rem;
+    margin-bottom: 0;
+    .flowChartBlock {
+      &:not(:last-of-type) {
+        margin-bottom: 3rem;
+      }
+    }
+  }
 }
 
 .flowChartOutput {

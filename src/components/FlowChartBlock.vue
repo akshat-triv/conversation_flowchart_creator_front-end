@@ -5,7 +5,16 @@
     class="flowChartBlock"
     @click="$emit('delete-block', blockData.id)"
   >
-    {{ blockData.value }}
+    <span v-if="!blockInputType">{{ blockData.value }}</span>
+
+    <input
+      v-else
+      type="text"
+      class="blockInput"
+      :placeholder="placeholderText"
+      v-model="val"
+      @input="$emit('input', val)"
+    />
   </div>
 </template>
 
@@ -18,6 +27,19 @@ export default {
       type: Object,
       default: null,
     },
+    blockInputType: {
+      type: Boolean,
+      default: false,
+    },
+    placeholderText: {
+      type: String,
+      default: 'Enter Text',
+    },
+  },
+  data() {
+    return {
+      val: '',
+    };
   },
 };
 </script>
@@ -35,12 +57,28 @@ export default {
     box-shadow: 0 0.5rem 1rem rgba(#1abc9c, 0.3);
     color: #fff;
     align-self: flex-end;
+
+    .blockInput {
+      color: #fff;
+    }
+
+    .blockInput::-webkit-input-placeholder {
+      color: #fff;
+    }
   }
   &--utterance {
     background-color: #3498db;
     box-shadow: 0 0.5rem 1rem rgba(#3498db, 0.3);
     color: #fff;
     align-self: flex-end;
+
+    .blockInput {
+      color: #fff;
+    }
+
+    .blockInput::-webkit-input-placeholder {
+      color: #fff;
+    }
   }
 
   &--usermessage {
@@ -48,6 +86,10 @@ export default {
     box-shadow: 0 0 1rem rgba(#ecf0f1, 0.3);
     color: #333;
     align-self: flex-start;
+
+    .blockInput::-webkit-input-placeholder {
+      color: #333;
+    }
   }
 
   &:first-of-type {
@@ -61,5 +103,13 @@ export default {
   &:hover {
     cursor: pointer;
   }
+}
+
+.blockInput {
+  height: 100%;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
 }
 </style>
