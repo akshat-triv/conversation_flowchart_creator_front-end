@@ -108,12 +108,11 @@ export default {
         return;
       }
       event.dataTransfer.setData('blockId', blockId);
-      // console.log(blockId);
     },
     onDrop(event) {
       const blockId = event.dataTransfer.getData('blockId');
       const afterElement = this.getDragAfterElement(event.clientY);
-      let blockIndex = 0,
+      let blockIndex = NaN,
         blockData;
 
       if (!blockId) {
@@ -129,7 +128,7 @@ export default {
       }
 
       if (afterElement === undefined) {
-        if (blockIndex) {
+        if (!isNaN(blockIndex)) {
           this.flowChartBlocks.splice(blockIndex, 1);
         }
         this.flowChartBlocks.push(blockData);
@@ -137,7 +136,7 @@ export default {
         const afterElementId = this.flowChartBlocks.findIndex(
           (el) => el.id === afterElement.id
         );
-        if (blockIndex) {
+        if (!isNaN(blockIndex)) {
           this.flowChartBlocks.splice(blockIndex, 1);
         }
         this.flowChartBlocks.splice(afterElementId, 0, blockData);
