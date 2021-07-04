@@ -12,8 +12,8 @@
       type="text"
       class="blockInput"
       :placeholder="placeholderText"
-      v-model="val"
-      @input="$emit('input', val)"
+      :value="value"
+      @input="$emit('input', $event.target.value)"
     />
   </div>
 </template>
@@ -35,11 +35,10 @@ export default {
       type: String,
       default: 'Enter Text',
     },
-  },
-  data() {
-    return {
-      val: '',
-    };
+    value: {
+      type: String,
+      default: '',
+    },
   },
 };
 </script>

@@ -141,6 +141,8 @@ export default {
         }
         this.flowChartBlocks.splice(afterElementId, 0, blockData);
       }
+      if (blockData.type === 'usermessage') this.userMessage = '';
+      else this[blockData.type] = '';
     },
     getDragAfterElement(y) {
       const allDraggableNodes = Array.from(
