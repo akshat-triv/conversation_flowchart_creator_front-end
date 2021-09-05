@@ -3,7 +3,7 @@
     <div class="inputFormWrapper">
       <input-form @new-block="addAtEnd" />
       <button class="btn btnPrimary" @click="createJson">Create Json</button>
-      <a href="/getJson">
+      <a href="/downloadJson">
         <button class="btn btnSecondary" @click="downloadJson">
           Download Json
         </button>
